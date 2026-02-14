@@ -1,0 +1,97 @@
+Custom SLM Pretraining with RoPE on TinyStories
+
+This repository contains the full pipeline for pretraining a Small Language Model (SLM) from scratch on the TinyStories dataset. 
+The primary goal of this project was to gain hands-on experience with core transformer mechanics—specifically integrating Rotary Positional Embeddings (RoPE), managing the data pipeline, and establishing a rigorous evaluation harness—rather than aiming for state-of-the-art benchmark performance.
+
+Below is a detailed technical dissection of the model's training dynamics, attention mechanics, and generation capabilities.
+
+Training Dynamics: Loss and Perplexity Evaluation
+
+LINKS: 
+[https://wandb.ai/xenflashs-jkf-/small-llm-rope-tinystories/runs/cj7cm25f?nw=nwuserxenflashs&panelDisplayName=val_perplexity&panelSectionName=Charts ] - VAL Perplexity
+
+[https://wandb.ai/xenflashs-jkf-/small-llm-rope-tinystories/runs/cj7cm25f?nw=nwuserxenflashs&panelDisplayName=val_loss&panelSectionName=Charts] - VAL Loss
+
+[https://wandb.ai/xenflashs-jkf-/small-llm-rope-tinystories/runs/cj7cm25f?nw=nwuserxenflashs&panelDisplayName=train_perplexity&panelSectionName=Charts] - Train perplexity
+
+[https://wandb.ai/xenflashs-jkf-/small-llm-rope-tinystories/runs/cj7cm25f?nw=nwuserxenflashs&panelDisplayName=train_loss&panelSectionName=Charts] - Train Loss
+
+[https://wandb.ai/xenflashs-jkf-/small-llm-rope-tinystories/runs/cj7cm25f?nw=nwuserxenflashs&panelDisplayName=step&panelSectionName=Charts] - Steps Graph 
+
+[https://wandb.ai/xenflashs-jkf-/small-llm-rope-tinystories/runs/cj7cm25f?nw=nwuserxenflashs&panelDisplayName=epoch&panelSectionName=Charts] - Epoch Graph
+
+The training lifecycle was monitored across four key metrics: Train Loss, Train Perplexity, Val Loss, and Val Perplexity.
+The convergence behavior reveals how efficiently the model adapted to the restricted syntax of the dataset.
+
+Convergence and Generalization Gap:
+
+Initial Descent: The training loss exhibits a rapid descent in the early steps, dropping steeply from its random initialization state.
+This is highly characteristic of the TinyStories dataset; because the vocabulary is restricted to ~1,500 words tailored for a 3-4 year old's comprehension,
+the model maps the fundamental syntax and token distributions very quickly.
+
+Final Loss Values: 1.47, while the Val Loss stabilizes right alongside it at roughly 1.60.
+
+Generalization: The remarkably tight gap between the Train and Val loss curves is a strong indicator of successful generalization.
+The validation curve closely tracks the training curve without diverging upward, meaning the model successfully learned the underlying grammatical rules of the domain rather than memorizing the training data (overfitting).
+
+Perplexity ($PPL$):
+Perplexity measures the model's uncertainty when predicting the next token, 
+formally defined as:$$PPL(X) = \exp\left(-\frac{1}{t}\sum_{i=1}^t \log p_\theta(x_i|x_{<i})\right)$$
+
+Metric Analysis: The validation perplexity dropped rapidly and plateaued at approximately 5.03.
+n the context of language modeling, a low single-digit perplexity on validation data implies the model is highly confident in its next-token predictions.
+While this is partially an artifact of the dataset's low vocabulary variance, it confirms the architecture is successfully capturing the target distribution.
+
+
+2. Attention Mechanics and the Impact of RoPE
+
+[https://wandb.ai/xenflashs-jkf-/small-llm-rope-tinystories/runs/cj7cm25f/panel/7rqhwrcg2?nw=nwuserxenflashs] - FIRST ATTENTION VISUALIZATION Tom_found_a_ball._He_kicked_th...
+[https://wandb.ai/xenflashs-jkf-/small-llm-rope-tinystories/runs/cj7cm25f/panel/8j24ef8ix?nw=nwuserxenflashs] - SECOND ATTENTION VISUALIZATION The_dragon_was_big_and_scary_...
+
+Visualizing the attention maps (The mean attention at Layer 5) reveals exactly how the model processes context and tracks subjects.
+
+Relative Positioning via RoPE: Unlike absolute positional encodings, RoPE rotates the query and key representations based on their positions. The attention score between a query at position $m$ and a key at position $n$ relies solely on their relative distance. 
+Looking at the Layer 5 attention maps, a strong local diagonal band is immediately visible. RoPE forces the model to heavily weight immediately preceding tokens, which is crucial for maintaining local syntax (e.g., ensuring adjectives correctly modify the adjacent noun).
+
+Entity Tracking (Attention Sinks): In deeper layers, vertical bands of attention form around specific subject tokens (e.g., "Tom" or "dragon"). The model utilizes these tokens as "attention sinks" to maintain narrative consistency over the generation window, ensuring it remembers who the current action belongs to.
+
+3. Dissecting Generation Quality
+
+[https://wandb.ai/xenflashs-jkf-/small-llm-rope-tinystories/runs/cj7cm25f/panel/g6o3f8r22?nw=nwuserxenflashs] - GENERATION SAMPLES
+
+
+The generated samples highlight both the architectural strengths of the model and the inherent semantic limitations of pretraining solely on TinyStories.
+
+Example 1: The "Timmy" Story
+
+"Timmy's friend accidentally hit Timmy's little sister and it made a cut on the front of his own face... 'Mom, can you help me fix the little sister?' Timmy asked... Let's go get some glue to fix your dad's boo-boo."
+
+Syntactic Success: The grammatical structure is practically flawless. The model successfully introduces conflict, seeks resolution, and formats dialogue with correct punctuation.
+
+Semantic Hallucination: The logical reasoning breaks down. The friend hits the sister, but gets a cut on his own face. They use "glue" to fix a "sister", which then morphs into "dad's boo-boo". The model understands the shape of a narrative but lacks a grounded, logical world model.
+
+Example 2: The "Forest" Story
+
+"She knew the dog was important. She knew that it was reliable. She ran home and told her mom. She was happy that she learned something important."
+
+Prompt Adherence: Excellent adherence to the prompt and thematic consistency.
+
+Syntactic Repetition: The model relies heavily on repetitive Subject-Verb-Object structures. This is a direct reflection of the simplistic sentence structures prevalent in the TinyStories training data.
+
+
+4. Architectural Insights & Future Optimizations
+
+While this run successfully validates the custom RoPE implementation and data pipeline, there are several distinct avenues for scaling and optimizing this architecture in future iterations:
+
+
+Deeper vs. Wider Architecture: Currently, the model might benefit more from increased depth (more layers and heads) rather than width (larger embedding dimensions, $d_{model}$). Because TinyStories has a restricted vocabulary (~1.5k words) without highly complex conceptual relationships, a massive embedding dimension is largely underutilized. Instead, increasing the number of layers would allow the model to build deeper non-linear combinations of those simple concepts, yielding a higher ROI for logical reasoning.
+
+
+
+Dataset Scaling:
+To move past toddler-level syntax and semantic hallucinations (e.g., using glue on humans), the pretraining pipeline must be scaled to a larger, more diverse corpus (such as subsets of FineWeb or SlimPajama). This would introduce a richer vocabulary and more complex grammatical relationships.
+
+
+Grouped Query Attention (GQA):
+
+To alleviate hardware constraints during training and speed up inference, implementing GQA would be highly beneficial. By sharing key/value heads across multiple query heads, we can significantly reduce the memory bandwidth required for the KV cache.
