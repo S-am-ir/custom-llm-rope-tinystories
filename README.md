@@ -40,7 +40,7 @@ The model's training lifecycle was monitored across four key metrics:
 
 Perplexity measures the model's uncertainty when predicting the next token:
 
-$$\text{PPL}(X) = \exp\left(-\frac{1}{T}\sum_{i=1}^{T} \log p_\theta(x_i | x_{<i})\right)$$
+$$\text{PPL}(X) = \exp\left(-\frac{1}{T}\sum_{i=1}^{T} \log p_\theta(x_i \mid x_{\lt i})\right)$$
 
 where $T$ is sequence length, $p_\theta(x_i | x_{<i})$ is the probability of token $x_i$ given preceding tokens.
 
@@ -221,3 +221,4 @@ MIT License - Feel free to use this for research and educational purposes.
 ## Author Notes
 
 This project prioritizes pedagogical clarity over production optimization. It serves as a comprehensive reference for understanding transformer training pipelines, positional encoding mechanisms, and rigorous model evaluation. The visualizations on W&B provide concrete evidence of architectural decisions and their impact on model behavior.
+
