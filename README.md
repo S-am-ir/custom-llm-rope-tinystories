@@ -2,7 +2,7 @@
 
 A from-scratch implementation of a Small Language Model (SLM) with Rotary Positional Embeddings (RoPE) trained on the TinyStories dataset. This project serves as a hands-on exploration of core transformer mechanics, data pipeline management, and rigorous evaluation practices.
 
-**Note**: This is a learning project focusing on architectural understanding rather than SOTA performance. The model demonstrates potential for constrained domains but is not production-ready.
+This is a learning project focusing on architectural understanding rather than SOTA performance. The model demonstrates potential for constrained domains but is not production-ready.
 
 ---
 
@@ -159,6 +159,7 @@ where $\theta$ varies across dimensions to encode position information across th
 - Transformer Architecture: [Attention Is All You Need](https://arxiv.org/abs/1706.10677)
 
 ---
+
 
 
 
