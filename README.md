@@ -121,58 +121,6 @@ where $\theta$ varies across dimensions to encode position information across th
 
 ---
 
-## Repository Structure
-
-```
-custom-llm-rope-tinystories/
-├── README.md                           # This file
-├── custom_llm.py                       # Model architecture and training loop
-├── dataset_prep.py                     # TinyStories dataset download and filtering
-├── dataset_filtering.py                # Subsampling for efficient training
-├── requirements.txt                    # Python dependencies
-└── .gitignore                          # Git ignore rules
-```
-
----
-
-## Setup & Training
-
-### Installation
-
-```bash
-# Clone the repository
-git clone https://github.com/S-am-ir/custom-llm-rope-tinystories.git
-cd custom-llm-rope-tinystories
-
-# Install dependencies
-pip install -r requirements.txt
-```
-
-### Data Preparation
-
-```bash
-# Download and filter TinyStories dataset
-python dataset_prep.py
-
-# Subsample for training efficiency
-python dataset_filtering.py
-```
-
-### Model Training
-
-```bash
-# Begin training
-python custom_llm.py
-```
-
-The script will:
-- Load the filtered TinyStories dataset
-- Initialize the SLM with RoPE
-- Train with early stopping and checkpointing
-- Save the best model to `small_llm_best.pth`
-- Generate sample text from the prompt "Once upon a time..."
-
----
 
 ## Model Configuration
 
@@ -212,13 +160,5 @@ The script will:
 
 ---
 
-## License
 
-MIT License - Feel free to use this for research and educational purposes.
-
----
-
-## Author Notes
-
-This project prioritizes pedagogical clarity over production optimization. It serves as a comprehensive reference for understanding transformer training pipelines, positional encoding mechanisms, and rigorous model evaluation. The visualizations on W&B provide concrete evidence of architectural decisions and their impact on model behavior.
 
